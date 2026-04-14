@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arduino Live Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f2f8;
+      --sidebar-bg: #ffffff;
+      --card-bg: #ffffff;
+      --accent: #5c6fff;
+      --accent-soft: #e8eaff;
+      --text-primary: #1a1d2e;
+      --text-secondary: #8b8fa8;
+      --border: #e4e7f3;
+      --success: #4ecb71;
+      --warning: #ffb547;
+      --danger: #ff6b6b;
+      --shadow: 0 4px 24px rgba(92, 111, 255, 0.08);
+      --shadow-hover: 0 8px 32px rgba(92, 111, 255, 0.16);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 20px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-icon svg { width: 20px; height: 20px; fill: white; }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin: 20px 0 10px 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+    }
+
+    .nav-item:hover { background: var(--accent-soft); color: var(--accent); }
+    .nav-item.active { background: var(--accent); color: white; }
+    .nav-item svg { width: 18px; height: 18px; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 5;
+    }
+
+    .topbar-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.75); }
+    }
+
+    .port-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ── Content ── */
+    .content {
+      padding: 28px 32px;
+      background-image: url("bcg.jpeg");
+      flex: 1;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--accent) 0%, #7b8fff 100%);
+      border-radius: 20px;
+      padding: 28px 36px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    .welcome-banner::after {
+      content: '';
+      position: absolute;
+      right: 80px; bottom: -60px;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+
+    .welcome-text h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .welcome-text p { font-size: 14px; opacity: 0.85; }
+
+    .current-value-hero {
+      text-align: right;
+      position: relative; z-index: 1;
+    }
+
+    .current-value-hero .label {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .current-value-hero .number {
+      font-family: 'Syne', sans-serif;
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1;
+      transition: all 0.3s ease;
+    }
+
+    .current-value-hero .unit { font-size: 14px; opacity: 0.7; margin-top: 2px; }
+
+    /* ── Stat Cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .stat-card .icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .stat-card .icon svg { width: 20px; height: 20px; }
+
+    .stat-card .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-card .stat-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ── Chart Card ── */
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .chart-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .chart-header p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .chart-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .meta-chip .dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .chart-wrap { height: 260px; position: relative; }
+
+    canvas { border-radius: 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="logo-text">Pressure<br/><span>Detector</span></div>
+    </div>
+
+    <div class="nav-label">Monitor</div>
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analytics
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Sensors
+    </div>
+
+    <div class="nav-label">System</div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="sidebar-footer">
+      v1.0 · COM8 · 9600 baud
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">Live Sensor Monitor</div>
+      <div class="topbar-right">
+        <div class="port-tag">COM8 · 9600 baud</div>
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          Live
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h1>Dashboard</h1>
+          <p>Real-time Pressue monitoring — updates every 100ms</p>
+        </div>
+        <div class="current-value-hero">
+          <div class="label">Current Value</div>
+          <div class="number" id="hero-value">—</div>
+          <div class="unit">Analog (0–1023)</div>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="icon" style="background:#e8eaff">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#5c6fff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="stat-label">Current</div>
+          <div class="stat-value" id="stat-current">—</div>
+          <div class="stat-sub">Latest reading</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:#e8fff0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4ecb71" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div class="stat-label">Maximum</div>
+          <div class="stat-value" id="stat-max">—</div>
+          <div class="stat-sub">Session high</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:#fff5e8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffb547" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          </div>
+          <div class="stat-label">Minimum</div>
+          <div class="stat-value" id="stat-min">—</div>
+          <div class="stat-sub">Session low</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:#ffe8e8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="stat-label">Average</div>
+          <div class="stat-value" id="stat-avg">—</div>
+          <div class="stat-sub">Rolling avg</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h2>A0 Signal Graph</h2>
+            <p>Overall live waveform — last 50 samples</p>
+          </div>
+          <div class="chart-meta">
+            <div class="meta-chip">
+              <div class="dot"></div>
+              A0 Value
+            </div>
+            <div class="meta-chip" style="background:#e8fff0; color:#4ecb71;">
+              <div class="dot" style="background:#4ecb71;"></div>
+              Live
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let dataPoints = [];
+    let labels = [];
+    let sessionData = [];
+
+    const ctx = document.getElementById('chart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'A0 Value',
+          data: dataPoints,
+          borderColor: '#5c6fff',
+          backgroundColor: (ctx) => {
+            const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 260);
+            gradient.addColorStop(0, 'rgba(92,111,255,0.18)');
+            gradient.addColorStop(1, 'rgba(92,111,255,0)');
+            return gradient;
+          },
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.45,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#5c6fff',
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1d2e',
+            titleColor: '#8b8fa8',
+            bodyColor: '#ffffff',
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              title: () => 'A0 Reading',
+              label: (item) => `Value: ${item.raw}`
+            }
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            min: 0, max: 1023,
+            grid: { color: 'rgba(228,231,243,0.7)', drawBorder: false },
+            ticks: {
+              color: '#8b8fa8',
+              font: { family: 'DM Sans', size: 11 },
+              maxTicksLimit: 5
+            },
+            border: { display: false }
+          }
+        }
+      }
+    });
+
+    function updateStats(value) {
+      sessionData.push(value);
+      if (sessionData.length > 200) sessionData.shift();
+
+      const max = Math.max(...sessionData);
+      const min = Math.min(...sessionData);
+      const avg = Math.round(sessionData.reduce((a, b) => a + b, 0) / sessionData.length);
+
+      document.getElementById('hero-value').textContent = value;
+      document.getElementById('stat-current').textContent = value;
+      document.getElementById('stat-max').textContent = max;
+      document.getElementById('stat-min').textContent = min;
+      document.getElementById('stat-avg').textContent = avg;
+    }
+
+    setInterval(() => {
+      fetch('/data')
+        .then(res => res.json())
+        .then(data => {
+          if (dataPoints.length > 50) {
+            dataPoints.shift();
+            labels.shift();
+          }
+          dataPoints.push(data.value);
+          labels.push('');
+          chart.update();
+          updateStats(data.value);
+        })
+        .catch(() => {});
+    }, 100);
+  </script>
+</body>
+</html>
+```
