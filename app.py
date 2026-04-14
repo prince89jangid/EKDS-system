@@ -5,7 +5,7 @@ import threading
 app = Flask(__name__)
 
 # ⚠️ COM port check karo (Device Manager me dekho)
-ser = serial.Serial('COM8', 9600, timeout=1)
+ser = serial.Serial('COM14', 9600, timeout=1)
 
 latest_value = 0
 
