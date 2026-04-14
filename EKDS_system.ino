@@ -6,12 +6,20 @@
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-#define buzzer  8
-#define while_led  9
-#define red_led  10
+#define buzzer 8
+#define while_led 9
+#define red_led 10
+
+/* =========================================================================================================================*/
 
 int sensor_min = 0;
 int sensor_max = 1023;
+int delta = 10;  // diffence bw two pressue
+int Dt = 100;     // 20ms
+int detection_delay = 1000;
+int threshold = 50;
+/* =========================================================================================================================*/
+
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -24,6 +32,51 @@ void showText(String msg) {
 
   display.print(msg);
   display.display();
+}
+
+void alarm1() {
+  for (int i = 0; i < 3; i++) {
+
+    if (cal_values() <= threshold) {
+      return;
+    }
+    digitalWrite(buzzer, HIGH);
+    digitalWrite(red_led,HIGH);
+    delay(100);
+    digitalWrite(buzzer , LOW); 
+    digitalWrite(red_led , LOW); 
+    delay(100);
+  }
+  return;
+}
+
+void alarm2() {
+  for (int i = 0; i < 25; i++) {
+    Serial.println(cal_values());
+
+    digitalWrite(buzzer, HIGH);
+    digitalWrite(red_led, HIGH);
+    delay(50);
+    digitalWrite(buzzer, LOW);
+    digitalWrite(red_led, LOW);
+    delay(50);
+  }
+}
+
+int cal_values() {
+  int val = analogRead(A0);
+  val = map(val, sensor_min, sensor_max, 0, 100);
+  return val;
+}
+
+bool isKick(int pc, int po) {
+  int Dp = pc - po;
+  if (Dp >= delta)
+
+  {
+    return true;
+  }
+  return false;
 }
 
 void setup() {
@@ -42,20 +95,40 @@ void setup() {
 
 void loop() {
 
-  int val = analogRead(A0);
-  val = map(val, sensor_min, sensor_max, 0, 100);
 
-  Serial.println(val);
 
-  showText((String)val + " %");
-  int temp = map(val, 0, 100, 0, 255);
+  int curr_pres = cal_values();
+
+  showText((String)curr_pres + " %");
+
+  int temp = map(curr_pres, 0, 100, 0, 255);
   analogWrite(while_led, temp);
 
-  if (val > 50) {
+  Serial.println(curr_pres);
+
+  if (curr_pres > threshold) {
+    showText("High      Pressure");
+    alarm1();
+  }
+
+  curr_pres = cal_values();
+  Serial.println(curr_pres);
+
+  delay(Dt);
+
+  Serial.println(cal_values());
+
+  int old_pres = cal_values();
+
+  if (isKick(curr_pres, old_pres) == true) {
     digitalWrite(red_led, HIGH);
-    digitalWrite(buzzer, HIGH);
+    showText("KICK       FOUND");
+    alarm2();
+    delay(detection_delay);
+
   } else {
-    digitalWrite(red_led, LOW);
-    digitalWrite(buzzer, LOW);
+    {
+      digitalWrite(red_led, LOW);
+    }
   }
 }
