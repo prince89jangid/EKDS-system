@@ -1,12 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arduino Live Dashboard</title>
+    <title>Early Kick Detection System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap"
       rel="stylesheet"
     />
 
@@ -20,608 +26,804 @@
       }
 
       :root {
-        --bg: #f0f2f8;
-        --sidebar-bg: #ffffff;
-        --card-bg: #ffffff;
-        --accent: #5c6fff;
-        --accent-soft: #e8eaff;
-        --text-primary: #1a1d2e;
-        --text-secondary: #8b8fa8;
-        --border: #e4e7f3;
-        --success: #4ecb71;
-        --warning: #ffb547;
-        --danger: #ff6b6b;
-        --shadow: 0 4px 24px rgba(92, 111, 255, 0.08);
-        --shadow-hover: 0 8px 32px rgba(92, 111, 255, 0.16);
+        --bg: #d4b896;
+        --sidebar-bg: #b5714a;
+        --header-bg: #f0d84a;
+        --header-text: #1a1a1a;
+        --chart-bg: #c8a8e0;
+        --stats-bg: #6dd16d;
+        --stats-border: #2a2a2a;
+        --controls-bg: #7ba7d4;
+        --threshold-bg: #d4a0b0;
+        --accent-red: #c0392b;
+        --text-dark: #1a1a1a;
+        --profile-bg: #c0392b;
       }
 
       body {
-        font-family: "DM Sans", sans-serif;
+        font-family: "Oswald", sans-serif;
         background: var(--bg);
-        color: var(--text-primary);
-        display: flex;
         min-height: 100vh;
-        overflow-x: hidden;
-      }
-
-      /* ── Sidebar ── */
-      .sidebar {
-        width: 220px;
-        background: var(--sidebar-bg);
-        border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        padding: 28px 20px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        z-index: 10;
-      }
-
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 40px;
-      }
-
-      .logo-icon {
-        width: 36px;
-        height: 36px;
-        background: var(--accent);
-        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-
-      .logo-icon svg {
-        width: 20px;
-        height: 20px;
-        fill: white;
-      }
-
-      .logo-text {
-        font-family: "Syne", sans-serif;
-        font-weight: 800;
-        font-size: 15px;
-        color: var(--text-primary);
-        line-height: 1.2;
-      }
-
-      .logo-text span {
-        color: var(--accent);
-      }
-
-      .nav-label {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        margin: 20px 0 10px 8px;
-      }
-
-      .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        cursor: pointer;
-        color: var(--text-secondary);
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        margin-bottom: 4px;
-      }
-
-      .nav-item:hover {
-        background: var(--accent-soft);
-        color: var(--accent);
-      }
-      .nav-item.active {
-        background: var(--accent);
-        color: white;
-      }
-      .nav-item svg {
-        width: 18px;
-        height: 18px;
-      }
-
-      .sidebar-footer {
-        margin-top: auto;
-        padding-top: 20px;
-        border-top: 1px solid var(--border);
-        font-size: 12px;
-        color: var(--text-secondary);
-        text-align: center;
-      }
-
-      /* ── Main ── */
-      .main {
-        margin-left: 220px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      /* ── Topbar ── */
-      .topbar {
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border);
-        padding: 16px 32px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-      }
-
-      .topbar-title {
-        font-family: "Syne", sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-      }
-
-      .topbar-right {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .status-badge {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        padding: 7px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        background: var(--success);
-        border-radius: 50%;
-        animation: pulse 1.4s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.5;
-          transform: scale(0.75);
-        }
-      }
-
-      .port-tag {
-        background: var(--bg);
-        border: 1px solid var(--border);
-        color: var(--text-secondary);
-        padding: 7px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-      }
-
-      /* ── Content ── */
-      .content {
-        padding: 28px 32px;
-        background-image: url("bcg.jpeg");
-        flex: 1;
-      }
-
-      .welcome-banner {
-        background: linear-gradient(135deg, var(--accent) 0%, #7b8fff 100%);
-        border-radius: 20px;
-        padding: 28px 36px;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 28px;
-        position: relative;
         overflow: hidden;
       }
 
-      .welcome-banner::before {
-        content: "";
-        position: absolute;
-        right: -40px;
-        top: -40px;
-        width: 180px;
-        height: 180px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 50%;
-      }
-
-      .welcome-banner::after {
-        content: "";
-        position: absolute;
-        right: 80px;
-        bottom: -60px;
-        width: 140px;
-        height: 140px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 50%;
-      }
-
-      .welcome-text h1 {
-        font-family: "Syne", sans-serif;
-        font-size: 26px;
-        font-weight: 800;
-        margin-bottom: 4px;
-      }
-
-      .welcome-text p {
-        font-size: 14px;
-        opacity: 0.85;
-      }
-
-      .current-value-hero {
-        text-align: right;
-        position: relative;
-        z-index: 1;
-      }
-
-      .current-value-hero .label {
-        font-size: 12px;
-        opacity: 0.75;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .current-value-hero .number {
-        font-family: "Syne", sans-serif;
-        font-size: 46px;
-        font-weight: 800;
-        line-height: 1;
-        transition: all 0.3s ease;
-      }
-
-      .current-value-hero .unit {
-        font-size: 14px;
-        opacity: 0.7;
-        margin-top: 2px;
-      }
-
-      /* ── Stat Cards ── */
-      .stat-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 28px;
-      }
-
-      .stat-card {
-        background: var(--card-bg);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: var(--shadow);
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
-      }
-
-      .stat-card:hover {
-        box-shadow: var(--shadow-hover);
-        transform: translateY(-2px);
-      }
-
-      .stat-card .icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
+      /* ===== PAGE SYSTEM ===== */
+      .page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 14px;
-      }
-
-      .stat-card .icon svg {
-        width: 20px;
-        height: 20px;
-      }
-
-      .stat-card .stat-label {
-        font-size: 12px;
-        color: var(--text-secondary);
-        font-weight: 500;
-        margin-bottom: 4px;
-      }
-
-      .stat-card .stat-value {
-        font-family: "Syne", sans-serif;
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-primary);
-      }
-
-      .stat-card .stat-sub {
-        font-size: 11px;
-        color: var(--text-secondary);
-        margin-top: 2px;
-      }
-
-      /* ── Chart Card ── */
-      .chart-card {
-        background: var(--card-bg);
-        border-radius: 20px;
-        padding: 24px 28px;
-        box-shadow: var(--shadow);
-      }
-
-      .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-      }
-
-      .chart-header h2 {
-        font-family: "Syne", sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-      }
-
-      .chart-header p {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-top: 2px;
-      }
-
-      .chart-meta {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .meta-chip {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-secondary);
         background: var(--bg);
-        padding: 5px 12px;
-        border-radius: 20px;
+        transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+        z-index: 1;
+      }
+      .page.hidden-left {
+        transform: translateX(-100%);
+      }
+      .page.hidden-right {
+        transform: translateX(100%);
+      }
+      .page.active {
+        transform: translateX(0);
+        z-index: 2;
       }
 
-      .meta-chip .dot {
-        width: 8px;
-        height: 8px;
-        background: var(--accent);
-        border-radius: 50%;
-      }
-
-      .chart-wrap {
-        height: 260px;
+      /* ===== MAIN BOARD ===== */
+      .board {
+        width: 96vw;
+        max-width: 1400px;
+        height: 90vh;
+        max-height: 780px;
+        display: grid;
+        grid-template-columns: 130px 1fr 230px;
+        grid-template-rows: 90px 1fr 110px;
+        border: 4px solid #2a2a2a;
+        background: #e8d5b0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 8px 8px 0 #5a3a1a;
         position: relative;
       }
 
+      /* ===== HEADER ===== */
+      .header {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        background: var(--header-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 4px solid #2a2a2a;
+        border-right: 4px solid #2a2a2a;
+      }
+      .header h1 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: clamp(22px, 3vw, 38px);
+        color: var(--header-text);
+        letter-spacing: 2px;
+        text-align: center;
+      }
+
+      /* ===== PROFILE ===== */
+      .profile {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+        background: var(--profile-bg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-bottom: 4px solid #2a2a2a;
+      }
+      .profile-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 3px solid #fff;
+        background: #c8a8e0;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .profile-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .profile-name {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 21px;
+        color: #000000;
+        line-height: 1.3;
+      }
+      .profile-title {
+        font-family: "Rajdhani", sans-serif;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-align: center;
+      }
+
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        grid-column: 1 / 2;
+        grid-row: 1 / 4;
+        background: var(--sidebar-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 20px 10px;
+        border-right: 4px solid #2a2a2a;
+        gap: 16px;
+      }
+      .about-btn {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 18px;
+        color: #ffead1;
+        text-align: center;
+        cursor: pointer;
+        letter-spacing: 1px;
+        line-height: 1.2;
+        transition: transform 0.15s;
+        user-select: none;
+      }
+      .about-btn:hover {
+        transform: scale(1.05);
+        text-decoration: underline;
+      }
+      .oil-rig {
+        font-size: 56px;
+        line-height: 1;
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.4));
+      }
+
+      #rigImage {
+        /* border: 2px solid red; */
+        width: 100px;
+      }
+
+      /* ===== CHART AREA ===== */
+      .chart-area {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        background: var(--chart-bg);
+        border-bottom: 4px solid #2a2a2a;
+        border-right: 4px solid #2a2a2a;
+        padding: 16px 20px 10px;
+        position: relative;
+        overflow: hidden;
+      }
+      .chart-wrap {
+        width: 100%;
+        height: 100%;
+      }
       canvas {
-        border-radius: 12px;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* Alert overlay on chart */
+      .alert-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .alert-overlay.show {
+        opacity: 1;
+      }
+      .alert-text {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: clamp(28px, 4vw, 52px);
+        color: #e8000a;
+        text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        text-align: center;
+        letter-spacing: 2px;
+        animation: alertPulse 0.5s ease-in-out infinite alternate;
+      }
+      @keyframes alertPulse {
+        from {
+          transform: scale(1);
+        }
+        to {
+          transform: scale(1.05);
+        }
+      }
+
+      /* ===== STATS PANEL ===== */
+      .stats-panel {
+        grid-column: 3 / 4;
+        grid-row: 2 / 4;
+        background: var(--stats-bg);
+        display: flex;
+        flex-direction: column;
+        border-left: 0;
+        transition: background 0.4s;
+      }
+      .stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 8px 18px;
+        border-bottom: 3px dashed #2a2a2a;
+      }
+      .stat-item:last-child {
+        border-bottom: none;
+      }
+      .stat-label-text {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 21px;
+        color: #f0d84a;
+        letter-spacing: 1px;
+        -webkit-text-stroke: 1px #000000;
+      }
+      .stat-value-text {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: clamp(36px, 4vw, 58px);
+        color: #1a1a1a;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+
+      /* ===== CONTROLS BAR ===== */
+      .controls-bar {
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-right: 4px solid #2a2a2a;
+      }
+      .controls-left {
+        background: var(--controls-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 12px 20px;
+        border-right: 4px solid #2a2a2a;
+      }
+      .ctrl-btn {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: #fff;
+      }
+      .ctrl-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+      }
+      .ctrl-btn:active {
+        transform: scale(0.95);
+      }
+      .ctrl-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: #fff;
+      }
+
+      /* Threshold */
+      .threshold-box {
+        background: var(--threshold-bg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        gap: 10px;
+      }
+      .threshold-label {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 21px;
+        color: #f0d84a;
+        -webkit-text-stroke: 1px #0c0202;
+        line-height: 1.2;
+      }
+      .threshold-value-display {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: clamp(36px, 4vw, 58px);
+        color: #1a1a1a;
+        cursor: pointer;
+        text-decoration: underline dotted;
+        transition: transform 0.15s;
+      }
+      .threshold-value-display:hover {
+        transform: scale(1.05);
+        color: #c0392b;
+      }
+
+      /* Threshold input popup */
+      .threshold-popup {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      .threshold-popup.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .popup-box {
+        background: #f0d84a;
+        border: 4px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 28px 36px;
+        text-align: center;
+        box-shadow: 6px 6px 0 #2a2a2a;
+        transform: scale(0.8);
+        transition: transform 0.2s;
+      }
+      .threshold-popup.show .popup-box {
+        transform: scale(1);
+      }
+      .popup-box h3 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+      .popup-box input {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 36px;
+        width: 160px;
+        text-align: center;
+        border: 3px solid #2a2a2a;
+        border-radius: 6px;
+        padding: 8px;
+        background: #fff;
+        display: block;
+        margin: 0 auto 16px;
+      }
+      .popup-box input:focus {
+        outline: none;
+        border-color: #c0392b;
+      }
+      .popup-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      .popup-btn {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 16px;
+        padding: 10px 24px;
+        border: 3px solid #2a2a2a;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .popup-btn:hover {
+        transform: scale(1.05);
+      }
+      .popup-btn.confirm {
+        background: #6dd16d;
+      }
+      .popup-btn.cancel {
+        background: #ff6b6b;
+      }
+
+      /* ===== ABOUT PAGE ===== */
+      .about-board {
+        width: 96vw;
+        max-width: 1400px;
+        height: 90vh;
+        max-height: 780px;
+        display: grid;
+        grid-template-columns: 130px 1fr 300px;
+        grid-template-rows: 90px 1fr;
+        border: 4px solid #2a2a2a;
+        background: #e8d5b0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 8px 8px 0 #5a3a1a;
+      }
+      .about-header {
+        grid-column: 2 / 3;
+        background: var(--header-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 4px solid #2a2a2a;
+        border-right: 4px solid #2a2a2a;
+      }
+      .about-profile {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+        background: var(--profile-bg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-bottom: 4px solid #2a2a2a;
+      }
+      .about-sidebar {
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
+        background: var(--sidebar-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 20px 10px;
+        gap: 16px;
+        border-right: 4px solid #2a2a2a;
+      }
+      .back-btn {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 16px;
+        color: #f0d84a;
+        text-align: center;
+        cursor: pointer;
+        letter-spacing: 1px;
+        line-height: 1.2;
+        transition: transform 0.15s;
+      }
+      .back-btn:hover {
+        transform: scale(1.05);
+        text-decoration: underline;
+      }
+      .about-content {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        overflow: hidden;
+        border-right: 4px solid #2a2a2a;
+      }
+      .about-block {
+        flex: 1;
+        padding: 16px 22px;
+        border-bottom: 4px solid #2a2a2a;
+      }
+      .about-block:last-child {
+        border-bottom: none;
+      }
+      .about-block.obj-bg {
+        background: #a8b8d8;
+      }
+      .about-block.app-bg {
+        background: #d48080;
+      }
+      .block-title {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 25px;
+        color: #f0d84a;
+        -webkit-text-stroke: 0.5px #2a2a2a;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
+      }
+      .block-text {
+        font-family: "Rajdhani", sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        color: #1a1a1a;
+        line-height: 1.5;
+      }
+      .about-right {
+        grid-column: 3 / 4;
+        grid-row: 2 / 3;
+        background: #7ba7d4;
+        padding: 18px 20px;
+      }
+      .about-right .block-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .about-right ul {
+        list-style: disc;
+        padding-left: 18px;
+        font-family: "Rajdhani", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        line-height: 1.8;
+      }
+
+      /* ===== KICK/LOSS FLASH ===== */
+      .board-flash {
+        position: absolute;
+        inset: 0;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.1s;
+        z-index: 10;
+      }
+      .board-flash.kick-flash {
+        background: rgba(192, 57, 43, 0.18);
+      }
+      .board-flash.loss-flash {
+        background: rgba(52, 73, 94, 0.15);
+      }
+      .board-flash.active {
+        opacity: 1;
+      }
+
+      /* Stats panel color change on event */
+      .stats-panel.kick-mode {
+        background: #c0392b;
+      }
+      .stats-panel.loss-mode {
+        background: #7f8c8d;
+      }
+
+      /* Chart bg change */
+      .chart-area {
+        transition: background 0.4s;
+      }
+      .chart-area.kick-mode {
+        background: #f5b0b0;
+      }
+      .chart-area.loss-mode {
+        background: #b0c4d4;
       }
     </style>
   </head>
   <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        </div>
-        <div class="logo-text">Pressure<br /><span>Detector</span></div>
-      </div>
+    <!-- ============================================================ -->
+    <!--  PAGE 1 — HOME DASHBOARD                                     -->
+    <!-- ============================================================ -->
+    <div class="page active" id="page-home">
+      <div class="board" id="main-board">
+        <div class="board-flash" id="board-flash"></div>
 
-      <div class="nav-label">Monitor</div>
-      <div class="nav-item active">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
-        Dashboard
-      </div>
-      <div class="nav-item">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-        Analytics
-      </div>
-      <div class="nav-item">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="12" cy="12" r="3" />
-          <path
-            d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"
-          />
-        </svg>
-        Sensors
-      </div>
-
-      <div class="nav-label">System</div>
-      <div class="nav-item">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="12" cy="12" r="3" />
-          <path
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-          />
-        </svg>
-        Settings
-      </div>
-
-      <div class="sidebar-footer" style="font-weight: bold">
-        v1.0 COM8 9600 baud
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <div class="main">
-      <!-- Topbar -->
-      <div class="topbar">
-        <div class="topbar-title">Live Sensor Monitor</div>
-        <div class="topbar-right">
-          <div class="port-tag">COM8 · 9600 baud</div>
-          <div class="status-badge">
-            <div class="status-dot"></div>
-            Live
-          </div>
-        </div>
-      </div>
-
-      <!-- Content -->
-      <div class="content">
-        <!-- Welcome Banner -->
-        <div class="welcome-banner">
-          <div class="welcome-text">
-            <h1>Dashboard</h1>
-            <p>Real-time Pressue monitoring updates every 100ms</p>
-          </div>
-          <div class="current-value-hero">
-            <div class="label">Current Value</div>
-            <div class="number" id="hero-value">—</div>
-            <div class="unit"></div>
-          </div>
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <span class="about-btn" onclick="goToAbout()">ABOUT<br />SYSTEM</span>
+          <div class="oil-rig">🛢</div>
         </div>
 
-        <!-- Stat Cards -->
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="icon" style="background: #e8eaff">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#5c6fff"
-                stroke-width="2"
-              >
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-            </div>
-            <div class="stat-label">Current</div>
-            <div class="stat-value" id="stat-current">—</div>
-            <div class="stat-sub">Latest reading</div>
+        <!-- Header -->
+        <div class="header">
+          <h1>EARLY KICK DETECTION SYSTEM</h1>
+        </div>
+
+        <!-- Profile -->
+        <div class="profile">
+          <div class="profile-img">
+            <img src="img.jpeg" alt="Kriti Vyas" />
           </div>
-          <div class="stat-card">
-            <div class="icon" style="background: #e8fff0">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#4ecb71"
-                stroke-width="2"
-              >
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                <polyline points="17 6 23 6 23 12" />
-              </svg>
-            </div>
-            <div class="stat-label">Maximum</div>
-            <div class="stat-value" id="stat-max">—</div>
-            <div class="stat-sub">Session high</div>
-          </div>
-          <div class="stat-card">
-            <div class="icon" style="background: #fff5e8">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ffb547"
-                stroke-width="2"
-              >
-                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-                <polyline points="17 18 23 18 23 12" />
-              </svg>
-            </div>
-            <div class="stat-label">Minimum</div>
-            <div class="stat-value" id="stat-min">—</div>
-            <div class="stat-sub">Session low</div>
-          </div>
-          <div class="stat-card">
-            <div class="icon" style="background: #ffe8e8">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ff6b6b"
-                stroke-width="2"
-              >
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-              </svg>
-            </div>
-            <div class="stat-label">Average</div>
-            <div class="stat-value" id="stat-avg">—</div>
-            <div class="stat-sub">Rolling avg</div>
+          <div>
+            <div class="profile-name">KRITI VYAS</div>
+            <div class="profile-title">PETROLEUM ENGINEER</div>
           </div>
         </div>
 
         <!-- Chart -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <div>
-              <h2>A0 Signal Graph</h2>
-              <p>Overall live waveform last 50 samples</p>
-            </div>
-            <div class="chart-meta">
-              <div class="meta-chip">
-                <div class="dot"></div>
-                A0 Value
-              </div>
-              <div
-                class="meta-chip"
-                style="background: #e8fff0; color: #4ecb71"
-              >
-                <div class="dot" style="background: #4ecb71"></div>
-                Live
-              </div>
-            </div>
-          </div>
+        <div class="chart-area" id="chart-area">
           <div class="chart-wrap">
-            <canvas id="chart"></canvas>
+            <canvas id="pressureChart"></canvas>
           </div>
+          <div class="alert-overlay" id="alert-overlay">
+            <div class="alert-text" id="alert-text">KICK DETECTED</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-panel" id="stats-panel">
+          <div class="stat-item">
+            <div class="stat-label-text">CURRENT</div>
+            <div class="stat-value-text" id="stat-current">—</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label-text">MAXIMUM</div>
+            <div class="stat-value-text" id="stat-max">—</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label-text">MINIMUM</div>
+            <div class="stat-value-text" id="stat-min">—</div>
+          </div>
+          <div class="stat-item" style="border-bottom: none">
+            <div class="stat-label-text">AVERAGE</div>
+            <div class="stat-value-text" id="stat-avg">—</div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+          <div class="controls-left">
+            <div
+              class="ctrl-btn"
+              id="btn-play"
+              onclick="ctrlPlay()"
+              title="Play"
+            >
+              <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21" /></svg>
+            </div>
+            <div
+              class="ctrl-btn"
+              id="btn-pause"
+              onclick="ctrlPause()"
+              title="Pause"
+            >
+              <svg viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+            </div>
+            <div class="ctrl-btn" onclick="ctrlReset()" title="Reset">
+              <svg viewBox="0 0 24 24">
+                <path d="M1 4v6h6M23 20v-6h-6" />
+                <path
+                  d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <div class="threshold-box">
+            <div class="threshold-label">THRESHOLD<br />LIMIT</div>
+            <div
+              class="threshold-value-display"
+              id="threshold-display"
+              onclick="openThresholdPopup()"
+            >
+              700
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /board -->
+    </div>
+    <!-- /page-home -->
+
+    <!-- ============================================================ -->
+    <!--  PAGE 2 — ABOUT SYSTEM                                       -->
+    <!-- ============================================================ -->
+    <div class="page hidden-right" id="page-about">
+      <div class="about-board">
+        <div class="about-sidebar">
+          <span class="back-btn" onclick="goBack()">◀ BACK<br />HOME</span>
+          <div class="oil-rig">🛢</div>
+        </div>
+
+        <div class="about-header">
+          <h1
+            style="
+              font-family: &quot;Black Han Sans&quot;, sans-serif;
+              font-size: clamp(20px, 3vw, 36px);
+              letter-spacing: 2px;
+            "
+          >
+            EARLY KICK DETECTION SYSTEM
+          </h1>
+        </div>
+
+        <div class="about-profile">
+          <div class="profile-img">
+            <img
+              src="img.jpeg"
+              alt="Kriti Vyas"
+              onerror="
+                this.style.display = 'none';
+                this.parentNode.innerHTML = '👩‍🔬';
+              "
+            />
+          </div>
+          <div>
+            <div class="profile-name">KRITI VYAS</div>
+            <div class="profile-title">PETROLEUM ENGINEER</div>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <div class="about-block obj-bg">
+            <div class="block-title">OBJECTIVE</div>
+            <div class="block-text">
+              To detect early kick conditions by monitoring pressure changes in
+              the wellbore and providing timely alerts.
+            </div>
+            <div class="block-title" style="margin-top: 10px">PRINCIPLE</div>
+            <div class="block-text">
+              A kick occurs when formation pressure exceeds hydrostatic
+              pressure, causing a sudden rise in wellbore pressure, which can be
+              detected.
+            </div>
+          </div>
+          <div class="about-block app-bg">
+            <div class="block-title">APPLICATION</div>
+            <div class="block-text">
+              This model is used to demonstrate early kick detection based on
+              pressure variation in drilling operations. It helps in
+              understanding well control concepts and visualizing how pressure
+              changes during abnormal conditions. The system also serves as an
+              educational and training tool, allowing users to observe real-time
+              data and learn safety measures required to prevent blowouts.
+            </div>
+          </div>
+        </div>
+
+        <div class="about-right">
+          <div class="block-title">HOW IT WORKS</div>
+          <ul>
+            <li>Water chamber represents wellbore</li>
+            <li>Balloon acts as kick source</li>
+            <li>Air pumped → balloon expands</li>
+            <li>Expansion causes pressure change</li>
+            <li>Sensor measures pressure</li>
+            <li>Data shown as readings &amp; graph</li>
+            <li>Sudden rise indicates kick</li>
+            <li>Sudden drop indicates loss</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- /page-about -->
+
+    <!-- ============================================================ -->
+    <!--  THRESHOLD POPUP                                             -->
+    <!-- ============================================================ -->
+    <div class="threshold-popup" id="threshold-popup">
+      <div class="popup-box">
+        <h3>SET THRESHOLD LIMIT</h3>
+        <input
+          type="number"
+          id="threshold-input"
+          min="0"
+          max="1023"
+          value="700"
+        />
+        <div class="popup-btns">
+          <button class="popup-btn confirm" onclick="confirmThreshold()">
+            ✔ SET
+          </button>
+          <button class="popup-btn cancel" onclick="closeThresholdPopup()">
+            ✖ CANCEL
+          </button>
         </div>
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!--  JAVASCRIPT — ALL VARIABLES + CHART INIT + FETCH LOOP        -->
+    <!-- ============================================================ -->
     <script>
+      /* ── State ── */
+      const MAX_POINTS = 80;
       let dataPoints = [];
       let labels = [];
-      let sessionData = [];
+      let isRunning = true;
+      let prevValue = null;
+      let threshold = 700;
+      let delta = 50; // point-to-point jump that triggers kick/loss alert
+      let allValues = [];
+      let alertTimer = null;
+      let fetchTimer = null;
 
-      const ctx = document.getElementById("chart").getContext("2d");
-      const alarm = new Audio("https://www.soundjay.com/buttons/beep-07.wav");
-      let isAlarmPlaying = false;
+      /* ── Chart initialisation (THE MAIN BUG FIX) ── */
+      const ctx = document.getElementById("pressureChart").getContext("2d");
 
       const chart = new Chart(ctx, {
         type: "line",
@@ -629,124 +831,218 @@
           labels: labels,
           datasets: [
             {
-              label: "A0 Value",
+              label: "Pressure",
               data: dataPoints,
-              borderColor: "#5c6fff",
-              backgroundColor: (ctx) => {
-                const gradient = ctx.chart.ctx.createLinearGradient(
-                  0,
-                  0,
-                  0,
-                  260
-                );
-                gradient.addColorStop(0, "rgba(92,111,255,0.18)");
-                gradient.addColorStop(1, "rgba(92,111,255,0)");
-                return gradient;
-              },
+              borderColor: "#c0392b",
+              backgroundColor: "rgba(192,57,43,0.12)",
               borderWidth: 2.5,
-              fill: true,
-              tension: 0.45,
               pointRadius: 0,
-              pointHoverRadius: 5,
-              pointHoverBackgroundColor: "#5c6fff",
+              tension: 0.3,
+              fill: true,
             },
           ],
         },
         options: {
-          animation: false,
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
+          animation: { duration: 0 },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              backgroundColor: "#1a1d2e",
-              titleColor: "#8b8fa8",
-              bodyColor: "#ffffff",
-              padding: 12,
-              cornerRadius: 10,
-              callbacks: {
-                title: () => "A0 Reading",
-                label: (item) => `Value: ${item.raw}`,
-              },
-            },
+            tooltip: { enabled: false },
           },
           scales: {
-            x: { display: false },
+            x: {
+              display: false,
+            },
             y: {
               min: 0,
-              max: 1000,
-              grid: { color: "rgba(228,231,243,0.7)", drawBorder: false },
+              max: 1023,
+              grid: { color: "rgba(0,0,0,0.1)" },
               ticks: {
-                color: "#8b8fa8",
-                font: { family: "DM Sans", size: 11 },
-                maxTicksLimit: 5,
+                color: "#1a1a1a",
+                font: { family: "Oswald", size: 12 },
+                maxTicksLimit: 6,
               },
-              border: { display: false },
+              border: { color: "#2a2a2a" },
             },
           },
         },
       });
 
+      /* ── Threshold line plugin ── */
+      Chart.register({
+        id: "thresholdLine",
+        afterDraw(chartInstance) {
+          const { ctx: c, chartArea, scales } = chartInstance;
+          if (!chartArea) return;
+          const y = scales.y.getPixelForValue(threshold);
+          c.save();
+          c.strokeStyle = "#e74c3c";
+          c.lineWidth = 2;
+          c.setLineDash([6, 4]);
+          c.beginPath();
+          c.moveTo(chartArea.left, y);
+          c.lineTo(chartArea.right, y);
+          c.stroke();
+          c.setLineDash([]);
+          c.restore();
+        },
+      });
+
+      /* ── Stats update ── */
       function updateStats(value) {
-        sessionData.push(value);
-        if (sessionData.length > 200) sessionData.shift();
-
-        const max = Math.max(...sessionData);
-        const min = Math.min(...sessionData);
+        allValues.push(value);
+        const max = Math.max(...allValues);
+        const min = Math.min(...allValues);
         const avg = Math.round(
-          sessionData.reduce((a, b) => a + b, 0) / sessionData.length
+          allValues.reduce((a, b) => a + b, 0) / allValues.length,
         );
-
-        document.getElementById("hero-value").textContent = value;
         document.getElementById("stat-current").textContent = value;
         document.getElementById("stat-max").textContent = max;
         document.getElementById("stat-min").textContent = min;
         document.getElementById("stat-avg").textContent = avg;
       }
 
-      setInterval(() => {
-        fetch("/data")
-          .then((res) => res.json())
-          .then((data) => {
-            const value = data.value;
+      /* ── Alert / flash ── */
+      function showAlert(type) {
+        const overlay = document.getElementById("alert-overlay");
+        const alertText = document.getElementById("alert-text");
+        const statsPanel = document.getElementById("stats-panel");
+        const chartArea = document.getElementById("chart-area");
+        const boardFlash = document.getElementById("board-flash");
 
-            // ===== Alarm Logic =====
-            if (value > 50) {
-              if (!isAlarmPlaying) {
-                alarm.loop = true;
-                alarm.play();
-                isAlarmPlaying = true;
+        overlay.classList.add("show");
+        alertText.textContent =
+          type === "kick" ? "⚠ KICK DETECTED" : "⚠ PRESSURE LOSS";
+
+        statsPanel.className =
+          "stats-panel " + (type === "kick" ? "kick-mode" : "loss-mode");
+        chartArea.classList.add(type === "kick" ? "kick-mode" : "loss-mode");
+
+        boardFlash.className =
+          "board-flash active " +
+          (type === "kick" ? "kick-flash" : "loss-flash");
+
+        if (alertTimer) clearTimeout(alertTimer);
+        alertTimer = setTimeout(() => {
+          overlay.classList.remove("show");
+          statsPanel.className = "stats-panel";
+          chartArea.classList.remove("kick-mode", "loss-mode");
+          boardFlash.className = "board-flash";
+        }, 3000);
+      }
+
+      /* ── Fetch loop ── */
+      function fetchData() {
+        if (!isRunning) return;
+
+        fetch("/data")
+          .then((r) => r.json())
+          .then((data) => {
+            const value = data.value ?? 0;
+
+            /* Kick / Loss detection */
+            if (prevValue !== null) {
+              const dp = value - prevValue;
+              if (dp >= delta) {
+                showAlert("kick");
+              } else if (-dp >= delta) {
+                showAlert("loss");
               }
-            } else {
-              alarm.pause();
-              alarm.currentTime = 0;
-              isAlarmPlaying = false;
+            }
+            prevValue = value;
+
+            /* Threshold breach detection */
+            if (value >= threshold) {
+              showAlert("kick");
             }
 
-            // existing code ↓
-            if (dataPoints.length > 50) {
+            /* Chart update */
+            if (dataPoints.length >= MAX_POINTS) {
               dataPoints.shift();
               labels.shift();
             }
-
             dataPoints.push(value);
             labels.push("");
 
-            chart.update();
+            chart.update("none"); // 'none' skips animation for speed
             updateStats(value);
-            if (dataPoints.length > 50) {
-              dataPoints.shift();
-              labels.shift();
-            }
-            dataPoints.push(data.value);
-            labels.push("");
-            chart.update();
-            updateStats(data.value);
           })
-          .catch(() => {});
-      }, 100);
+          .catch((err) => console.warn("Fetch error:", err));
+      }
+
+      /* Start polling at 100 ms */
+      fetchTimer = setInterval(fetchData, 100);
+
+      /* ── Play / Pause / Reset ── */
+      function ctrlPlay() {
+        if (!isRunning) {
+          isRunning = true;
+          fetchTimer = setInterval(fetchData, 100);
+        }
+      }
+
+      function ctrlPause() {
+        isRunning = false;
+        clearInterval(fetchTimer);
+      }
+
+      function ctrlReset() {
+        dataPoints.length = 0;
+        labels.length = 0;
+        allValues.length = 0;
+        prevValue = null;
+        chart.update("none");
+        document.getElementById("stat-current").textContent = "—";
+        document.getElementById("stat-max").textContent = "—";
+        document.getElementById("stat-min").textContent = "—";
+        document.getElementById("stat-avg").textContent = "—";
+        document.getElementById("alert-overlay").classList.remove("show");
+        document.getElementById("stats-panel").className = "stats-panel";
+        document
+          .getElementById("chart-area")
+          .classList.remove("kick-mode", "loss-mode");
+        document.getElementById("board-flash").className = "board-flash";
+      }
+
+      /* ── Threshold popup ── */
+      function openThresholdPopup() {
+        document.getElementById("threshold-input").value = threshold;
+        document.getElementById("threshold-popup").classList.add("show");
+      }
+
+      function closeThresholdPopup() {
+        document.getElementById("threshold-popup").classList.remove("show");
+      }
+
+      function confirmThreshold() {
+        const val = parseInt(
+          document.getElementById("threshold-input").value,
+          10,
+        );
+        if (!isNaN(val) && val >= 0 && val <= 1023) {
+          threshold = val;
+          document.getElementById("threshold-display").textContent = val;
+          fetch("/threshold?value=" + val).catch(() => {});
+          chart.update("none");
+        }
+        closeThresholdPopup();
+      }
+
+      /* ── Page navigation ── */
+      function goToAbout() {
+        document.getElementById("page-home").classList.remove("active");
+        document.getElementById("page-home").classList.add("hidden-left");
+        document.getElementById("page-about").classList.remove("hidden-right");
+        document.getElementById("page-about").classList.add("active");
+      }
+
+      function goBack() {
+        document.getElementById("page-about").classList.remove("active");
+        document.getElementById("page-about").classList.add("hidden-right");
+        document.getElementById("page-home").classList.remove("hidden-left");
+        document.getElementById("page-home").classList.add("active");
+      }
     </script>
   </body>
 </html>
-```
